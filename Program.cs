@@ -12,19 +12,24 @@ namespace Resistance
     {
         #region Start point
 
-        private static TelegramBotClient MyBot;
+        private static readonly TelegramBotClient MyBot;
         private static int _lastMsgId;
+        private static long _admin;
         private static readonly GameLogic Core = new GameLogic();
 
-        static void Main(string[] args)
+        static Program()
         {
             var settings = File.ReadAllLines("settings.txt");
             var token = settings[0];
-            var admin = Convert.ToInt64(settings[1]);
             MyBot = new TelegramBotClient(token);
+            _admin = Convert.ToInt64(settings[1]);
+        }
+
+        static void Main(string[] args)
+        {
             MyBot.OnMessage += GetMessage;
             MyBot.StartReceiving();
-            Say(Replic.Ready, admin);
+            Say(Replic.Ready, _admin);
             Console.ReadLine();
             MyBot.StopReceiving();
         }
@@ -35,8 +40,9 @@ namespace Resistance
             if (msg == null) return;
             if (_lastMsgId == msg.MessageId) return;
             if (msg.Type != Telegram.Bot.Types.Enums.MessageType.Text) return;
-            var username = !string.IsNullOrEmpty(msg.From.Username)
-                ? $"@{msg.From.Username}" : $"{msg.From.FirstName} {msg.From.LastName}";
+            var fullName = $"{msg.From.FirstName} {msg.From.LastName}";
+            var username = string.IsNullOrWhiteSpace(fullName)
+                ? $"@{msg.From.Username}" : fullName;
             Interpretator(msg.Text, msg.Chat.Id, msg.From.Id, username, msg.Date.ToUniversalTime());
             _lastMsgId = msg.MessageId;
         }

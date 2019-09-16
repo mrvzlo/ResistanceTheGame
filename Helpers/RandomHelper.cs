@@ -15,7 +15,7 @@ namespace Resistance
             var redPlayerCount = Rules.GetRedPlayerCount(playerCount);
             for (; playerCount > 0; playerCount--)
             {
-                var isRed = Rand.Next(playerCount) > redPlayerCount;
+                var isRed = Rand.Next(playerCount) < redPlayerCount;
                 roles.Add(isRed ? Role.Red : Role.Blue);
                 if (isRed)
                     redPlayerCount--;
