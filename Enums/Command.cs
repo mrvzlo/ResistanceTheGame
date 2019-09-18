@@ -2,6 +2,6 @@
 {
     public enum Command
     {
-        Start, HowToStart, Join, Accept, Rules, Resistance, ForceStart
+        Start, HowToStart, Join, Accept, Rules, Resistance, ForceStart, Missions
     }
 }

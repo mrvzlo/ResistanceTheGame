@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Data;
+using System.Linq;
 using Resistance.Enums;
 using Resistance.Helpers;
 using Xunit;
@@ -43,6 +44,19 @@ namespace Resistance.Testing
         {
             var act = Rules.GetMissionPlayerCount(playerCount, missionNum);
             Assert.Equal(expected, act);
+        }
+
+        [Theory]
+        [InlineData(3, 2)]
+        [InlineData(4, 2)]
+        [InlineData(4, 3)]
+        [InlineData(5, 3)]
+        [InlineData(6, 3)]
+        [InlineData(6, 4)]
+        public void ValidateRedPlayerCount(int blue, int red)
+        {
+            var act = Rules.GetRedPlayerCount(blue + red);
+            Assert.Equal(red, act);
         }
     }
 }

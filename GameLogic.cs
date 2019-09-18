@@ -16,13 +16,15 @@ namespace Resistance.Database
         {
             var player = Repository.GetPlayer(userId);
             if (player == null)
-                player = new Player {TelegramId = userId, Name = username, GameId = null};
+                player = new Player { TelegramId = userId, Name = username, GameId = null };
             else if (player.Name != username)
                 player.Name = username;
             else return;
 
             Repository.SavePlayer(player);
         }
+
+        #region Before game start
 
         public Response.OpeningStatus OpenGame(long chatId)
         {
@@ -135,9 +137,31 @@ namespace Resistance.Database
                 playerRoles.Add(new PlayerRole(players[i]));
             }
 
+            for (var i = 0; i < 5; i++)
+                Repository.SaveMission(i, game.Id, MissionStatus.NotStarted);
+
             return Response.StartStatus.Success;
         }
 
+        #endregion
+
+        #region Missions
+
+        public bool GetChatMissions(long chatId, out List<MissionViewModel> missions)
+        {
+            var game = Repository.GetChatGame(chatId);
+            if (game == null || game.Status == GameStatus.Over || game.Status == GameStatus.Over)
+            {
+                missions = null;
+                return false;
+            }
+
+            var playerCount = Repository.GetGamePlayers(game.Id).Count;
+            missions = Repository.GetGameMissions(game.Id).Select(x => new MissionViewModel(x, playerCount)).ToList();
+            return true;
+        }
+
+        #endregion
         //todo start mission
         //todo vote
         //todo add member

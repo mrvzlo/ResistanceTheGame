@@ -87,7 +87,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Database\Repository.cs" />
+    <Compile Include="Entities\Mission.cs" />
     <Compile Include="Enums\Command.cs" />
+    <Compile Include="Enums\MissionStatus.cs" />
     <Compile Include="Enums\Role.cs" />
     <Compile Include="Helpers\EnumHelper.cs" />
     <Compile Include="Helpers\RandomHelper.cs" />
@@ -101,7 +103,7 @@
     <Compile Include="Enums\Response.cs" />
     <Compile Include="Helpers\RepositoryHelper.cs" />
     <Compile Include="Helpers\Rules.cs" />
-    <Compile Include="Models\Mission.cs" />
+    <Compile Include="Models\MissionViewModel.cs" />
     <Compile Include="Models\PlayerRole.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -8,5 +8,6 @@ namespace Resistance.Database
         public GameContext(): base("GameContext") { }
         public DbSet<Game> Games { get; set; }
         public DbSet<Player> Players { get; set; }
+        public DbSet<Mission> Missions { get; set; }
     }
 }

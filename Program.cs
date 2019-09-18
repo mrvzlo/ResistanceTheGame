@@ -72,6 +72,8 @@ namespace Resistance
                 return Say(!groupChat ? Replic.PublicChatOnly : JoinGame(chat, from, username), chat);
             if (StringHelper.EqualsAny(message, Command.ForceStart.ToCommand()))
                 return Say(!groupChat ? Replic.PublicChatOnly : StartGame(chat), chat);
+            if (StringHelper.EqualsAny(message, Command.Missions.ToCommand()))
+                return Say(!groupChat ? Replic.PublicChatOnly : AvailableMissions(chat), chat);
 
             return TaskStatus.Faulted;
         }
@@ -172,14 +174,23 @@ namespace Resistance
                     msg += Replic.YouAreCaptain;
 
                 Say(msg, player.TgId);
-
             }
 
             var captainName = players.Single(x => x.IsCaptain).Username;
-            return string.Format(result.GetDescription(), captainName);
+            return $"{string.Format(result.GetDescription(), captainName)}\n{AvailableMissions(chatId)}";
         }
 
         #endregion
 
+        #region Missions
+
+        private static string AvailableMissions(long chatId)
+        {
+            var result = Core.GetChatMissions(chatId, out var missions);
+            if (!result) return Replic.NoOpenGame;
+            return Replic.YourMissions + string.Join("\n", missions.Select(x => x.ToString()));
+        }
+
+        #endregion
     }
 }

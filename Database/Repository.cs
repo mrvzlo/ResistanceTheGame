@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Resistance.Entities;
+using Resistance.Enums;
 using Resistance.Helpers;
 
 namespace Resistance.Database
@@ -52,6 +53,25 @@ namespace Resistance.Database
             using (var db = new GameContext())
             {
                 db.InsertOrUpdate(player);
+            }
+        }
+
+        public List<Mission> GetGameMissions(long gameId)
+        {
+            using (var db = new GameContext())
+            {
+                return db.Missions.Where(x => x.GameId == gameId).ToList();
+            }
+        }
+
+        public void SaveMission(int num, int gameId, MissionStatus status)
+        {
+            using (var db = new GameContext())
+            {
+                var mission = db.Missions.SingleOrDefault(x => x.GameId == gameId && x.Num == num) 
+                              ?? new Mission { GameId = gameId, Num = num };
+                mission.Status = status;
+                db.InsertOrUpdate(mission);
             }
         }
     }

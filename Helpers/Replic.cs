@@ -47,5 +47,17 @@ namespace Resistance
                                          "заполучить доверие вашего капитана и успешно выполнить 3 миссии. " +
                                          "Но будьте бдительны, ваш капитан сам может оказаться шпионом.\n\n";
         #endregion
+
+        #region Missions
+
+        public const string YourMissions = "Ваши миссии:\n";
+        public const string MissionDescription = "{2} миссия {0} для {1} человек - {3}";
+        public const string Easy = "Лёгкая";
+        public const string Hard = "Сложная";
+        public const string MissionIsAvailable = "не выполнена";
+        public const string MissionFailed = "провалена";
+        public const string MissionSucceeded = "выполнена";
+
+        #endregion
     }
 }
