@@ -124,9 +124,16 @@ namespace Resistance.Database
 
             game.Status = GameStatus.MissionSelection;
             Repository.SaveGame(game);
+
             var roles = RandomHelper.GetPlayerRoles(players.Count);
+            var captainId = RandomHelper.RandNum(players.Count);
             for (var i = 0; i < players.Count; i++)
+            {
                 players[i].Role = roles[i];
+                players[i].IsLeader = i == captainId;
+                Repository.SavePlayer(players[i]);
+                playerRoles.Add(new PlayerRole(players[i]));
+            }
 
             return Response.StartStatus.Success;
         }

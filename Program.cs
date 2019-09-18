@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Resistance.Database;
 using Resistance.Enums;
@@ -40,7 +41,7 @@ namespace Resistance
             if (msg == null) return;
             if (_lastMsgId == msg.MessageId) return;
             if (msg.Type != Telegram.Bot.Types.Enums.MessageType.Text) return;
-            var fullName = $"{msg.From.FirstName} {msg.From.LastName}";
+            var fullName = $"{msg.From.FirstName} {msg.From.LastName}".Trim();
             var username = string.IsNullOrWhiteSpace(fullName)
                 ? $"@{msg.From.Username}" : fullName;
             Interpretator(msg.Text, msg.Chat.Id, msg.From.Id, username, msg.Date.ToUniversalTime());
@@ -157,11 +158,25 @@ namespace Resistance
             if (result != Response.StartStatus.Success)
                 return result.GetDescription();
 
+            var redTeam = players.Where(x => x.Role == Role.Red).Select(x => x.Username).ToList();
             foreach (var player in players)
             {
-                Say(player.IsRed ? Replic.YouAreRed : Replic.YouAreBlue, player.TgId);
+                var msg = player.Role == Role.Red ? Replic.YouAreRed : Replic.YouAreBlue;
+                if (player.Role == Role.Red)
+                {
+                    var otherPlayers = redTeam.Where(x => !string.Equals(x, player.Username, StringComparison.Ordinal));
+                    msg += string.Format(Replic.OtherRedPlayers, string.Join(", ", otherPlayers));
+                }
+
+                if (player.IsCaptain)
+                    msg += Replic.YouAreCaptain;
+
+                Say(msg, player.TgId);
+
             }
-            return Response.StartStatus.Success.GetDescription();
+
+            var captainName = players.Single(x => x.IsCaptain).Username;
+            return string.Format(result.GetDescription(), captainName);
         }
 
         #endregion

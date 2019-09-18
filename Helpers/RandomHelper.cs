@@ -19,7 +19,6 @@ namespace Resistance
                 roles.Add(isRed ? Role.Red : Role.Blue);
                 if (isRed)
                     redPlayerCount--;
-                //todo test
             }
             return roles;
         }
