@@ -16,7 +16,8 @@ namespace Resistance
         private static readonly TelegramBotClient MyBot;
         private static int _lastMsgId;
         private static long _admin;
-        private static readonly GameLogic Core = new GameLogic();
+        private static readonly GameLogic GameCore = new GameLogic();
+        private static readonly TelegramLogic TgCore = new TelegramLogic();
 
         static Program()
         {
@@ -52,29 +53,52 @@ namespace Resistance
 
         private static TaskStatus Interpretator(string message, long chat, long from, string username, DateTime dateTime)
         {
-            var groupChat = chat < 0;
-            Core.CheckPlayer(from, username);
+            var publicChat = chat < 0;
+            TgCore.CheckPlayer(from, username);
+            var command = TgCore.GetCommandFromString(message);
+            if (command.GetCommandType() == CommandType.PrivateOnly && publicChat)
+                return Say(Replic.PrivateChatOnly, chat);
+            if (command.GetCommandType() == CommandType.PublicOnly && !publicChat)
+                return Say(Replic.PublicChatOnly, chat);
 
-            if (message.Equals("/ping", StringComparison.OrdinalIgnoreCase))
-                return Say(Ping(dateTime), chat);
-            if (StringHelper.EqualsAny(message, Command.Start.ToCommand()))
-                return Say(groupChat ? Replic.PrivateChatOnly : ShowUnacceptedJoin(chat), chat);
-            if (StringHelper.EqualsAny(message, Command.Accept.ToCommand()))
-                return Say(groupChat ? Replic.PrivateChatOnly : AcceptJoin(chat, username), chat);
-            if (StringHelper.EqualsAny(message, Command.Rules.ToCommand()))
-                return Say(SendBigMessage(BigMessageType.Rules), chat);
-            if (StringHelper.EqualsAny(message, Command.HowToStart.ToCommand()))
-                return Say(SendBigMessage(BigMessageType.HowToStart), chat);
+            var reply = string.Empty;
+            switch (command)
+            {
+                case Command.Ping:
+                    reply = TgCore.Ping(dateTime);
+                    break;
+                case Command.Start:
+                    reply = ShowUnacceptedJoin(chat);
+                    break;
+                case Command.HowToStart:
+                    reply = TgCore.SendBigMessage(Command.HowToStart);
+                    break;
+                case Command.Join:
+                    reply = JoinGame(chat, from, username);
+                    break;
+                case Command.Accept:
+                    reply = AcceptJoin(chat, username);
+                    break;
+                case Command.Rules:
+                    reply = TgCore.SendBigMessage(Command.Rules);
+                    break;
+                case Command.Resistance:
+                    reply = OpenGame(chat);
+                    break;
+                case Command.ForceStart:
+                    reply = StartGame(chat);
+                    break;
+                case Command.Missions:
+                    reply = AvailableMissions(chat);
+                    break;
+                case Command.Choose:
+                    break;
+                default:
+                    reply = Replic.CommandNotFound;
+                    break;
+            }
 
-            if (StringHelper.EqualsAny(message, Command.Resistance.ToCommand()))
-                return Say(!groupChat ? Replic.PublicChatOnly : OpenGame(chat), chat);
-            if (StringHelper.EqualsAny(message, Command.Join.ToCommand()))
-                return Say(!groupChat ? Replic.PublicChatOnly : JoinGame(chat, from, username), chat);
-            if (StringHelper.EqualsAny(message, Command.ForceStart.ToCommand()))
-                return Say(!groupChat ? Replic.PublicChatOnly : StartGame(chat), chat);
-            if (StringHelper.EqualsAny(message, Command.Missions.ToCommand()))
-                return Say(!groupChat ? Replic.PublicChatOnly : AvailableMissions(chat), chat);
-
+            Say(reply, chat);
             return TaskStatus.Faulted;
         }
 
@@ -85,22 +109,12 @@ namespace Resistance
             return result.Status;
         }
 
-        static string Ping(DateTime messageDateTime)
-        {
-            var secs = DateTime.UtcNow.Subtract(messageDateTime).TotalSeconds;
-            return secs < 0.5 ? Replic.FastPing : string.Format(Replic.Ping, secs);
-        }
-
-        static string SendBigMessage(BigMessageType bigMessageType) =>
-            File.ReadAllText($"{bigMessageType.ToString()}.txt");
-
-
         #region Before the game
 
         private static string OpenGame(long chatId)
         {
             var gameNum = $"№{-chatId:X}";
-            var result = Core.OpenGame(chatId);
+            var result = GameCore.OpenGame(chatId);
             switch (result)
             {
                 case Response.OpeningStatus.Success:
@@ -112,7 +126,7 @@ namespace Resistance
 
         private static string JoinGame(long chatId, long userId, string username)
         {
-            var result = Core.JoinGame(chatId, userId, username);
+            var result = GameCore.JoinGame(chatId, userId, username);
             switch (result)
             {
                 case Response.JoiningStatus.PublicConfirm:
@@ -126,7 +140,7 @@ namespace Resistance
 
         private static string ShowUnacceptedJoin(long userId)
         {
-            var result = Core.ShowGameToJoin(userId, out var chatId);
+            var result = GameCore.ShowGameToJoin(userId, out var chatId);
             var gameNum = $"№{-chatId:X}";
             switch (result)
             {
@@ -139,7 +153,7 @@ namespace Resistance
 
         private static string AcceptJoin(long userId, string username)
         {
-            var result = Core.AcceptJoin(userId, username, out var chatId);
+            var result = GameCore.AcceptJoin(userId, username, out var chatId);
             var gameNum = $"№{-chatId:X}";
             switch (result)
             {
@@ -156,7 +170,7 @@ namespace Resistance
 
         private static string StartGame(long chatId)
         {
-            var result = Core.StartGame(chatId, out var players);
+            var result = GameCore.StartGame(chatId, out var players);
             if (result != Response.StartStatus.Success)
                 return result.GetDescription();
 
@@ -171,7 +185,7 @@ namespace Resistance
                 }
 
                 if (player.IsCaptain)
-                    msg += Replic.YouAreCaptain;
+                    msg += $"{Replic.YouAreCaptain}\n{AvailableMissionCommands(chatId, player.TgId)}";
 
                 Say(msg, player.TgId);
             }
@@ -186,9 +200,17 @@ namespace Resistance
 
         private static string AvailableMissions(long chatId)
         {
-            var result = Core.GetChatMissions(chatId, out var missions);
+            var result = GameCore.GetChatMissions(chatId, false, out var missions);
             if (!result) return Replic.NoOpenGame;
             return Replic.YourMissions + string.Join("\n", missions.Select(x => x.ToString()));
+        }
+
+        private static string AvailableMissionCommands(long chatId, long capId)
+        {
+            var result = GameCore.GetChatMissions(chatId, true, out var missions, capId);
+            if (!result) return null;
+            return Replic.AvailableMissions + string.Join("\n", missions.Where(x => x.IsAvailable)
+                       .Select(x => $"{Command.Choose.ToCommand()}_{x.Num + 1}"));
         }
 
         #endregion

@@ -1,5 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
+using Resistance.Enums;
+using Resistance.Helpers.Attributes;
 
 namespace Resistance
 {
@@ -30,6 +32,16 @@ namespace Resistance
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns></returns>
+        public static CommandType GetCommandType(this Enum value)
+        {
+            return GetCommandType(value as object);
+        }
+
+        /// <summary>
+        /// Gets the description.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns></returns>
         private static string GetDescription(object value)
         {
             if (value == null)
@@ -44,5 +56,23 @@ namespace Resistance
             return attributes.Length > 0 ? attributes[0].Description : value.ToString();
         }
 
+        /// <summary>
+        /// Gets the description.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns></returns>
+        private static CommandType GetCommandType(object value)
+        {
+            if (value == null)
+                return CommandType.Any;
+
+            var fieldInfo = value.GetType().GetField(value.ToString());
+            if (fieldInfo == null)
+                return CommandType.Any;
+
+            var attributes = (PublicityAttribute[])fieldInfo.GetCustomAttributes(typeof(PublicityAttribute), false);
+
+            return attributes.Length > 0 ? attributes[0].Type : CommandType.Any;
+        }
     }
 }

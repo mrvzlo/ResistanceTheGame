@@ -6,6 +6,8 @@ namespace Resistance.Enums
     {
         [Description(Replic.MissionIsAvailable)]
         NotStarted,
+        [Description(Replic.MissionStarted)]
+        Started,
         [Description(Replic.MissionFailed)]
         RedWon,
         [Description(Replic.MissionSucceeded)]

@@ -4,6 +4,8 @@ using Resistance.Entities;
 using Resistance.Enums;
 using Resistance.Helpers;
 using Resistance.Models;
+using Telegram.Bot.Types;
+using Game = Resistance.Entities.Game;
 
 namespace Resistance.Database
 {
@@ -11,18 +13,6 @@ namespace Resistance.Database
     {
         private readonly Repository Repository;
         public GameLogic() => Repository = new Repository();
-
-        public void CheckPlayer(long userId, string username)
-        {
-            var player = Repository.GetPlayer(userId);
-            if (player == null)
-                player = new Player { TelegramId = userId, Name = username, GameId = null };
-            else if (player.Name != username)
-                player.Name = username;
-            else return;
-
-            Repository.SavePlayer(player);
-        }
 
         #region Before game start
 
@@ -147,18 +137,37 @@ namespace Resistance.Database
 
         #region Missions
 
-        public bool GetChatMissions(long chatId, out List<MissionViewModel> missions)
+        public bool GetChatMissions(long chatId, bool capOnly, out List<MissionViewModel> missions, long? capTgId = null)
         {
+            missions = null;
             var game = Repository.GetChatGame(chatId);
             if (game == null || game.Status == GameStatus.Over || game.Status == GameStatus.Over)
-            {
-                missions = null;
                 return false;
+
+            if (capOnly)
+            {
+                var cap = Repository.GetGameCaptain(game.Id);
+                if (cap.TelegramId != capTgId) return false;
             }
 
             var playerCount = Repository.GetGamePlayers(game.Id).Count;
             missions = Repository.GetGameMissions(game.Id).Select(x => new MissionViewModel(x, playerCount)).ToList();
             return true;
+        }
+
+        public Response.SelectionStatus CanSelectMission(long capId)
+        {
+            var player = Repository.GetPlayer(capId);
+            if (player.GameId == null)
+                return Response.SelectionStatus.YouAreNotPlaying;
+            if (!player.IsLeader)
+                return Response.SelectionStatus.YouAreNotCaptain;
+            var game = Repository.GetGame(player.GameId.Value);
+            if (game == null)
+                return Response.SelectionStatus.Error;
+            if (game.Status != GameStatus.MissionSelection)
+                return Response.SelectionStatus.CantSelectNow;
+            return Response.SelectionStatus.Success;
         }
 
         #endregion

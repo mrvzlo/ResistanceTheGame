@@ -7,9 +7,11 @@ namespace Resistance.Models
     public class MissionViewModel : Key
     {
         private int PlayerCount { get; }
-        private int Num { get; }
+        public int Num { get; }
         private MissionStatus Status { get; }
         private bool IsEasy { get; }
+
+        public bool IsAvailable => Status == MissionStatus.NotStarted;
 
         public MissionViewModel(Mission mission, int totalPlayerCount)
         {
@@ -20,6 +22,6 @@ namespace Resistance.Models
         }
 
         public override string ToString() => 
-            string.Format(Replic.MissionDescription, Num, PlayerCount, IsEasy ? Replic.Easy : Replic.Hard, Status.GetDescription());
+            string.Format(Replic.MissionDescription, Num + 1, PlayerCount, IsEasy ? Replic.Easy : "", Status.GetDescription());
     }
 }

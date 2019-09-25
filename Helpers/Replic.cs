@@ -1,5 +1,4 @@
-﻿using System.Data;
-using Resistance.Helpers;
+﻿using Resistance.Helpers;
 
 namespace Resistance
 {
@@ -12,6 +11,7 @@ namespace Resistance
         public const string FastPing = "Понг";
         public const string Ping = "Задержка {0} секунд";
         public const string ServerError = "Ошибка сервера";
+        public const string CommandNotFound = "Неизвестная команда";
         #endregion
 
         #region StartGame
@@ -51,10 +51,11 @@ namespace Resistance
         #region Missions
 
         public const string YourMissions = "Ваши миссии:\n";
-        public const string MissionDescription = "{2} миссия {0} для {1} человек - {3}";
-        public const string Easy = "Лёгкая";
-        public const string Hard = "Сложная";
-        public const string MissionIsAvailable = "не выполнена";
+        public const string MissionDescription = "Миссия {0} для {1} человек {2}- {3}";
+        public const string Easy = "(упрощённая) ";
+        public const string AvailableMissions = "Доступные миссии:\n";
+        public const string MissionIsAvailable = "не начата";
+        public const string MissionStarted = "начата";
         public const string MissionFailed = "провалена";
         public const string MissionSucceeded = "выполнена";
 

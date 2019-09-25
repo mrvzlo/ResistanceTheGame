@@ -35,5 +35,14 @@ namespace Resistance.Enums
             [Description(Replic.NoOpenGame)] GameNotFound,
             [Description(Replic.NotEnoughPlayers)] NotEnoughPlayers
         }
+
+        public enum SelectionStatus
+        {
+            [Description(Replic.ServerError)] Error,
+            [Description(Replic.ServerError)] Success,
+            [Description(Replic.ServerError)] YouAreNotPlaying,
+            [Description(Replic.ServerError)] CantSelectNow,
+            [Description(Replic.ServerError)] YouAreNotCaptain,
+        }
     }
 }

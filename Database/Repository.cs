@@ -39,6 +39,13 @@ namespace Resistance.Database
                 return db.Players.FirstOrDefault(x => x.TelegramId == id);
             }
         }
+        public Player GetGameCaptain(long gameId)
+        {
+            using (var db = new GameContext())
+            {
+                return db.Players.SingleOrDefault(x=>x.IsLeader && x.GameId == gameId);
+            }
+        }
 
         public List<Player> GetGamePlayers(long gameId)
         {
